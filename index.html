@@ -6,10 +6,26 @@
   <body>
     <h1 id="title"></h1>
     <script src="jquery-1.11.2.js"></script>
+    <script src="underscore-1.7.0.js"></script>
     <script>
       $(document).ready(function () {
         $('#title').text('Hello world!');
       });
+
+      var linspace = function(start, stop, N) {
+        var interval = stop - start;
+        return omega = _.map(_.range(0, N), function(n) {
+          return start + (n * interval / N);
+        });
+      };
+
+      var N = 100;
+      var T = 1;
+      var omega = linspace(0, 2 * Math.PI, N);
+      var x = _.map(omega, function (o) {
+        return Math.sin(o);
+      });
+
     </script>
   </body>
 </html>
