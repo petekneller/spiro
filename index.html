@@ -4,28 +4,46 @@
     <title>Spiro</title>
   </head>
   <body>
-    <h1 id="title"></h1>
+    <h1 id="title">Spiro</h1>
+
+    <div width="600" height="200">
+      <svg id="plot1">
+        <polyline style="stroke:rgb(192,192,192);" points="" />
+      </svg>
+    </div>
+    
+    <svg width="100" height="150" viewBox="0,0,50,500">
+      <line x1="0" y1="10" x2="80" y2="60" style="stroke:black;"/>
+    </svg>
+
     <script src="jquery-1.11.2.js"></script>
     <script src="underscore-1.7.0.js"></script>
     <script>
-      $(document).ready(function () {
-        $('#title').text('Hello world!');
-      });
-
       var linspace = function(start, stop, N) {
-        var interval = stop - start;
-        return omega = _.map(_.range(0, N), function(n) {
-          return start + (n * interval / N);
-        });
+          var interval = stop - start;
+          return omega = _.map(_.range(0, N), function(n) {
+              return start + (n * interval / N);
+          });
       };
 
       var N = 100;
       var T = 1;
-      var omega = linspace(0, 2 * Math.PI, N);
+      var two_PI = 2 * Math.PI;
+      var omega = linspace(0, two_PI, N);
       var x = _.map(omega, function (o) {
-        return Math.sin(o);
+          return Math.sin(o);
       });
 
+      var ps = _.map(_.zip(omega, x), function(e) {
+      var omega = _.first(e);
+          var x = _.last(e);
+          return omega + ',' + x;
+      });
+
+      $(document).ready(function () {
+          $('#plot1').attr('viewBox', '0,-1,' + two_PI + '2');
+          $('#plot1 polyline').attr('points', ps.join(' '));
+      });
     </script>
   </body>
 </html>
