@@ -2,19 +2,36 @@
 <html>
   <head>
     <title>Spiro</title>
+    <style>
+      polyline,circle {
+          fill:none;
+          stroke-width:0.01;
+      }
+    </style>
   </head>
   <body>
     <h1 id="title">Spiro</h1>
 
-    <div width="600" height="200">
-      <svg id="plot1">
-        <polyline style="stroke:rgb(192,192,192);" points="" />
+    <div style="float:left;">
+      <svg id="p_plot" width="600" height="600" viewBox="-1.5,-1.5,3,3" preserveAspectRatio="none">
+        <circle id="curve0" cx="0" cy="0" r="1" style="stroke:lightgrey;"/>
+        <circle id="point0" r="0.01" style="stroke:grey; fill:grey;"/>
+        <circle id="curve1" style="stroke:lightgreen;"/>
+        <circle id="point1" r="0.01" style="stroke:lightgreen; fill:lightgreen;"/>
+        <circle id="curve2" style="stroke:red;"/>
+        <circle id="point2" r="0.01" style="stroke:red; fill:red;"/>
       </svg>
     </div>
-    
-    <svg width="100" height="150" viewBox="0,0,50,500">
-      <line x1="0" y1="10" x2="80" y2="60" style="stroke:black;"/>
-    </svg>
+    <div style="margin-top:100px;">
+      <svg id="x_plot" width="600" height="200" viewBox="0,-1.5,6.28,3" preserveAspectRatio="none">
+        <polyline id="curve0" style="stroke:lightgrey;"/>
+        <circle id="point0" r="0.02" style="stroke:grey; fill:grey;"/>
+        <polyline id="curve1" style="stroke:lightgreen;"/>
+        <circle id="point1" r="0.02" style="stroke:lightgreen; fill:lightgreen;"/>
+        <polyline id="curve2" style="stroke:red;"/>
+        <circle id="point2" r="0.02" style="stroke:red; fill:red;"/>
+      </svg>
+    </div>
 
     <script src="jquery-1.11.2.js"></script>
     <script src="underscore-1.7.0.js"></script>
@@ -26,23 +43,87 @@
           });
       };
 
-      var N = 100;
-      var T = 1;
+      var zipWith = function(xs, ys, f) {
+          var pairs = _.zip(xs, ys);
+          return _.map(pairs, function(p) {
+              return f(_.first(p), _.last(p));
+          });
+      };
+
+      var N = 1000;
+      var f0 = 1;
+      var r0 = 1;
       var two_PI = 2 * Math.PI;
       var omega = linspace(0, two_PI, N);
-      var x = _.map(omega, function (o) {
-          return Math.sin(o);
-      });
 
-      var ps = _.map(_.zip(omega, x), function(e) {
-      var omega = _.first(e);
-          var x = _.last(e);
-          return omega + ',' + x;
-      });
+      var f1 = 2;
+      var r1 = 0.25;
+
+      var f2 = 2;
+      var r2 = 0.5;
 
       $(document).ready(function () {
-          $('#plot1').attr('viewBox', '0,-1,' + two_PI + '2');
-          $('#plot1 polyline').attr('points', ps.join(' '));
+          // plot of x v omega (angular position)
+          var x0 = _.map(omega, function (o) {
+              return Math.sin(o);
+          });
+          var points = zipWith(omega, x0, function(o, x) { return o + ',' + x; });
+          $('#x_plot #curve0').attr('points', points.join(' '));
+
+
+          var x1 = _.map(omega, function (o) {
+              return r1 * Math.sin(f1 * o);
+          });
+          x1 = zipWith(x1, x0, function (x1, x0) { return x1 + x0; });
+          points = zipWith(omega, x1, function(o, x) { return o + ',' + x; });
+          $('#x_plot #curve1').attr('points', points.join(' '));
+
+          var x2 = _.map(omega, function (o) {
+              return r2 * r1 * Math.sin(f2 * f1 * o);
+          });
+          x2 = zipWith(x2, x1, function (x2, x1) { return x2 + x1; });
+          points = zipWith(omega, x2, function(o, x) { return o + ',' + x; });
+          $('#x_plot #curve2').attr('points', points.join(' '));
+
+          // plot of circular position
+
+          var y0 = _.map(omega, function (o) {
+              return Math.cos(o);
+          });
+
+          var y1 = _.map(omega, function (o) {
+              return r1 * Math.cos(f1 * o);
+          });
+          y1 = zipWith(y1, y0, function (y1, y0) { return y1 + y0; });
+
+          var y2 = _.map(omega, function (o) {
+              return r2 * r1 * Math.cos(f2 * f1 * o);
+          });
+          y2 = zipWith(y2, y1, function (y2, y1) { return y2 + y1; });
+
+          var T = 10; // seconds
+          var updateInterval = 1000 * T / N;
+          var draw = function(t) {
+              // base curve
+              $('#p_plot #point0').attr('cx', x0[t]).attr('cy', y0[t]);
+              $('#x_plot #point0').attr('cx', omega[t]).attr('cy', x0[t]);
+              // the green curve
+              $('#p_plot #curve1').attr('cx', x0[t]).attr('cy', y0[t]).attr('r', r1);
+              $('#p_plot #point1').attr('cx', x1[t]).attr('cy', y1[t]);
+              $('#x_plot #point1').attr('cx', omega[t]).attr('cy', x1[t]);
+              // red curve
+              $('#p_plot #curve2').attr('cx', x1[t]).attr('cy', y1[t]).attr('r', r2 * r1);
+              $('#p_plot #point2').attr('cx', x2[t]).attr('cy', y2[t]);
+              $('#x_plot #point2').attr('cx', omega[t]).attr('cy', x2[t]);
+          }
+          var t = 0;
+          var update = function () {
+              if (t > N) { t = 0; }
+              draw(t);
+              t = t + 1;
+              window.setTimeout(update, updateInterval);
+          }
+          update();
       });
     </script>
   </body>
